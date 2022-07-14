@@ -4,9 +4,17 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "@playwright/test": "^1.23.3",
     "@tsconfig/recommended": "^1.0.1",
     "@types/chrome": "^0.0.193",
+    "@types/node": "^18.0.4",
     "@webextension-toolbox/webextension-toolbox": "^5.2.2",
+    "playwright": "^1.23.3",
     "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "dev": "webextension-toolbox dev chrome",
+    "dev:test": "webextension-toolbox dev chrome -c webextension-toolbox.test.config.js",
+    "test": "playwright test"
   }
 }
