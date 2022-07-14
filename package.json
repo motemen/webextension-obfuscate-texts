@@ -1,0 +1,12 @@
+{
+  "name": "webextension-obfuscate-texts",
+  "author": "Hironao OTSUBO <motemen@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/chrome": "^0.0.193",
+    "@webextension-toolbox/webextension-toolbox": "^5.2.2",
+    "typescript": "^4.7.4"
+  }
+}

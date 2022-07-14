@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "version": "0.0.1",
+  "name": "Obfuscate texts",
+  "permissions": ["scripting", "activeTab"],
+  "action": {
+    "default_title": "Obfuscate"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "optional_host_permissions": ["*://*/*"]
+}
