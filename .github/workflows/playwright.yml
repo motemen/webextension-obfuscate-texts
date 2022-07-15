@@ -17,8 +17,7 @@ jobs:
       run: yarn
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    - run: |
-        yarn webextension-toolbox build chrome -c webextension-toolbox.test.config.js
+    - run: yarn build:test
     - name: Run Playwright tests
       uses: GabrielBB/xvfb-action@v1
       with:
