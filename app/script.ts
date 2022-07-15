@@ -5,6 +5,12 @@ interface Cut {
   end?: number;
 }
 
+function measureTextWidth(text: string, element: Element): number {
+  const canvas = document.createElement("canvas");
+  canvas.style.font = getComputedStyle(element).font;
+  return canvas.getContext("2d")!.measureText(text).width;
+}
+
 function obfuscateText(text: string, cut: Cut = {}): string {
   console.debug({ text, cut });
   return [...text]
@@ -18,7 +24,9 @@ function obfuscateText(text: string, cut: Cut = {}): string {
       if (/^\s+$/.test(char)) {
         return char;
       }
-      return OBFSCUSED_CHARS[Math.floor(Math.random() * OBFSCUSED_CHARS.length)];
+      return OBFSCUSED_CHARS[
+        Math.floor(Math.random() * OBFSCUSED_CHARS.length)
+      ];
     })
     .join("");
 }
@@ -34,7 +42,10 @@ function obfuscateNode(node: Node, cut?: Cut) {
 }
 
 function obfuscateRange(selection: Selection, range: Range) {
-  const it = document.createNodeIterator(range.commonAncestorContainer, NodeFilter.SHOW_TEXT);
+  const it = document.createNodeIterator(
+    range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT
+  );
 
   for (let node = it.nextNode(); node; node = it.nextNode()) {
     if (!selection.containsNode(node, true)) {

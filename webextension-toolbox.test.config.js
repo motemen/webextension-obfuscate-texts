@@ -1,8 +1,10 @@
 const CopyPlugin = require("copy-webpack-plugin");
+const { EnvironmentPlugin } = require("webpack");
 
 module.exports = {
   target: "test-dist/[vendor]",
   webpack: (config) => {
+    config.mode = "development";
     config.plugins.push(
       new CopyPlugin({
         patterns: [
@@ -19,6 +21,11 @@ module.exports = {
             force: true,
           },
         ],
+      })
+    );
+    config.plugins.unshift(
+      new EnvironmentPlugin({
+        NODE_ENV: "development",
       })
     );
 

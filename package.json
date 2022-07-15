@@ -8,13 +8,20 @@
     "@tsconfig/recommended": "^1.0.1",
     "@types/chrome": "^0.0.193",
     "@types/node": "^18.0.4",
+    "@types/webextension-polyfill": "^0.9.0",
     "@webextension-toolbox/webextension-toolbox": "^5.2.2",
     "playwright": "^1.23.3",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "webpack": "^5.73.0"
   },
   "scripts": {
     "dev": "webextension-toolbox dev chrome",
     "dev:test": "webextension-toolbox dev chrome -c webextension-toolbox.test.config.js",
+    "build": "webextension-toolbox build chrome",
+    "build:test": "webextension-toolbox build chrome -c webextension-toolbox.test.config.js",
     "test": "playwright test"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.9.0"
   }
 }

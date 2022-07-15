@@ -1,31 +1,56 @@
-async function runObfuscation(tabId?: number) {
+import browser from "webextension-polyfill";
+
+const CONTEXT_MENU_ID = "obfuscate-texts";
+
+browser.contextMenus.create({
+  id: CONTEXT_MENU_ID,
+  title: "Obfuscate",
+  contexts: ["page", "selection"],
+});
+
+browser.contextMenus.onClicked.addListener((info, tab) => {
+  runObfuscation({ tabId: tab?.id, frameId: info.frameId });
+});
+
+async function runObfuscation({
+  tabId,
+  frameId,
+}: {
+  tabId?: number;
+  frameId?: number;
+} = {}) {
   if (!tabId) {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      lastFocusedWindow: true,
-    });
-    tabId = tab.id;
+    if (process.env.NODE_ENV === "development") {
+      const [tab] = await browser.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      });
+      tabId = tab.id;
+    }
   }
-  await chrome.scripting.executeScript({
-    target: { tabId: tabId! },
+  await browser.scripting.executeScript({
+    target: { tabId: tabId!, frameIds: frameId ? [frameId] : undefined },
     files: ["script.js"],
   });
 }
 
-chrome.action.onClicked.addListener(async (tab) => {
-  console.log(tab);
-  await runObfuscation(tab.id!);
+browser.action.onClicked.addListener(async (tab) => {
+  await runObfuscation({ tabId: tab.id! });
 });
 
-declare interface Window {
-  __test__runObfuscation: (tabId?: number) => Promise<void>;
-  __test__activated: Promise<void>;
+declare var self: Window & typeof globalThis & { __test__: typeof __test__ };
+
+export type workerThis = typeof self;
+
+const __test__ = {
+  activated: new Promise<void>((resolve) => {
+    addEventListener("activate", () => {
+      resolve();
+    });
+  }),
+  runObfuscation,
+};
+
+if (process.env.NODE_ENV === "development") {
+  self.__test__ = __test__;
 }
-
-self.__test__activated = new Promise<void>((resolve) => {
-  addEventListener("activate", () => {
-    resolve();
-  });
-});
-
-self.__test__runObfuscation = runObfuscation;

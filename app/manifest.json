@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "version": "0.0.1",
   "name": "Obfuscate texts",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "contextMenus"],
   "action": {
     "default_title": "Obfuscate"
   },
