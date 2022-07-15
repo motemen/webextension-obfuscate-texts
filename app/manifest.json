@@ -9,5 +9,8 @@
   "background": {
     "service_worker": "background.js"
   },
+  "icons": {
+    "128": "icons/icon_128.png"
+  },
   "optional_host_permissions": ["*://*/*"]
 }
