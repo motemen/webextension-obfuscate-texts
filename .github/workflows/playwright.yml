@@ -20,7 +20,9 @@ jobs:
     - run: |
         yarn webextension-toolbox build chrome -c webextension-toolbox.test.config.js
     - name: Run Playwright tests
-      run: yarn playwright test
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: yarn test
     - uses: actions/upload-artifact@v2
       if: always()
       with:
