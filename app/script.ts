@@ -131,7 +131,10 @@ if (selection && selection.isCollapsed === false) {
     });
   }
 } else {
-  const it = document.createNodeIterator(document.body, NodeFilter.SHOW_TEXT);
+  const it = document.createNodeIterator(
+    document.body,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT
+  );
   for (let node = it.nextNode(); node; node = it.nextNode()) {
     obfuscateNode(node);
   }
