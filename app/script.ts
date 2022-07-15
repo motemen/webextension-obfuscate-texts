@@ -18,7 +18,7 @@ const ZERO_WIDTH_SPACE = "\u200B";
 
 function obfuscateText(text: string): string {
   return [...text]
-    .map((char, i) => {
+    .map((char) => {
       if (/^\s+$/.test(char)) {
         return char;
       }
@@ -42,22 +42,26 @@ function cutText(text: string, cut?: Cut): [string, string, string] {
 }
 
 function obfuscateTextNode(node: Node, cut?: Cut) {
-  console.debug("obfuscateTextNode", { node, cut });
   if (node.nodeType !== node.TEXT_NODE) {
     throw new Error("node is not a text node");
+  }
+  if (!node.parentElement?.offsetParent) {
+    // node is not visible eg. <script>, <style>
+    return;
   }
 
   const nodeText = node.textContent;
   if (!nodeText) {
     return;
   }
+
   const [pre, text, post] = cutText(nodeText, cut);
   let obfuscatedText = obfuscateText(text);
 
-  const originalWidth = measureTextWidth(text, node.parentElement!);
-  const obfuscatedWidth = measureTextWidth(obfuscatedText, node.parentElement!);
-
-  console.debug({ originalWidth, obfuscatedWidth });
+  const [originalWidth, obfuscatedWidth] = [
+    measureTextWidth(text, node.parentElement!),
+    measureTextWidth(obfuscatedText, node.parentElement!),
+  ];
 
   if (obfuscatedWidth > originalWidth) {
     obfuscatedText = obfuscatedText.substring(
@@ -75,50 +79,49 @@ function nodeCutFromRange(range: Range, node: Node): Cut {
   return { start, end };
 }
 
-function textNodesFromRange(range: Range): Node[] {
-  let results = <Node[]>[];
+function visitTextNodesInsideRange(
+  range: Range,
+  callback: (node: Node) => void
+) {
   let node: Node | null = range.startContainer;
-  while (node) {
-    let atEnd: boolean = false;
+
+  const visit = (node: Node): boolean => {
     if (node.nodeType === node.TEXT_NODE) {
-      results.push(node);
-      atEnd = node === range.endContainer;
+      callback(node);
     } else if (node.nodeType === node.ELEMENT_NODE) {
-      const visit = (node: Node): boolean => {
-        if (node.nodeType === node.TEXT_NODE) {
-          results.push(node);
-        } else if (node.nodeType === node.ELEMENT_NODE) {
-          const { start, end } = nodeCutFromRange(range, node);
-          const atEnd = [...node.childNodes].slice(start, end).some((child) => {
-            return visit(child);
-          });
-          if (atEnd) return true;
-        }
-        return node === range.endContainer;
-      };
-      atEnd = visit(node);
+      const { start, end } = nodeCutFromRange(range, node);
+      const atEnd = [...node.childNodes]
+        .slice(start, end)
+        .some((child) => visit(child));
+      if (atEnd) {
+        return true;
+      }
     }
 
+    return node === range.endContainer;
+  };
+
+  while (node) {
+    const atEnd = visit(node);
     if (atEnd) {
-      return results;
+      return;
     }
 
     while (!node.nextSibling) {
       node = node.parentElement;
       if (!node || node === range.commonAncestorContainer) {
-        return results;
+        return;
       }
     }
     node = node?.nextSibling;
   }
-  return results;
 }
 
 const selection = document.getSelection();
 if (selection && selection.isCollapsed === false) {
   for (let i = 0; i < selection.rangeCount; i++) {
     const range = selection.getRangeAt(i);
-    textNodesFromRange(range).forEach((node) => {
+    visitTextNodesInsideRange(range, (node) => {
       obfuscateTextNode(node, nodeCutFromRange(range, node));
     });
   }
