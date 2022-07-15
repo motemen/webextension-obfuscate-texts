@@ -41,12 +41,22 @@ function cutText(text: string, cut?: Cut): [string, string, string] {
   ];
 }
 
-function obfuscateTextNode(node: Node, cut?: Cut) {
-  if (node.nodeType !== node.TEXT_NODE) {
-    throw new Error("node is not a text node");
-  }
+const PRINTED_ATTRIBUTES = ["alt", "placeholder"];
+
+function obfuscateNode(node: Node, cut?: Cut) {
   if (!node.parentElement?.offsetParent) {
     // node is not visible eg. <script>, <style>
+    return;
+  }
+
+  if (node.nodeType !== node.TEXT_NODE) {
+    if (node instanceof HTMLElement) {
+      PRINTED_ATTRIBUTES.forEach((attr) => {
+        if (node.hasAttribute(attr)) {
+          node.setAttribute(attr, obfuscateText(node.getAttribute(attr) ?? ""));
+        }
+      });
+    }
     return;
   }
 
@@ -79,23 +89,18 @@ function nodeCutFromRange(range: Range, node: Node): Cut {
   return { start, end };
 }
 
-function visitTextNodesInsideRange(
-  range: Range,
-  callback: (node: Node) => void
-) {
+function visitNodesInsideRange(range: Range, callback: (node: Node) => void) {
   let node: Node | null = range.startContainer;
 
   const visit = (node: Node): boolean => {
-    if (node.nodeType === node.TEXT_NODE) {
-      callback(node);
-    } else if (node.nodeType === node.ELEMENT_NODE) {
-      const { start, end } = nodeCutFromRange(range, node);
-      const atEnd = [...node.childNodes]
-        .slice(start, end)
-        .some((child) => visit(child));
-      if (atEnd) {
-        return true;
-      }
+    callback(node);
+
+    const { start, end } = nodeCutFromRange(range, node);
+    const atEnd = [...node.childNodes]
+      .slice(start, end)
+      .some((child) => visit(child));
+    if (atEnd) {
+      return true;
     }
 
     return node === range.endContainer;
@@ -121,13 +126,13 @@ const selection = document.getSelection();
 if (selection && selection.isCollapsed === false) {
   for (let i = 0; i < selection.rangeCount; i++) {
     const range = selection.getRangeAt(i);
-    visitTextNodesInsideRange(range, (node) => {
-      obfuscateTextNode(node, nodeCutFromRange(range, node));
+    visitNodesInsideRange(range, (node) => {
+      obfuscateNode(node, nodeCutFromRange(range, node));
     });
   }
 } else {
   const it = document.createNodeIterator(document.body, NodeFilter.SHOW_TEXT);
   for (let node = it.nextNode(); node; node = it.nextNode()) {
-    obfuscateTextNode(node);
+    obfuscateNode(node);
   }
 }
